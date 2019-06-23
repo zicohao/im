@@ -1,7 +1,6 @@
 # IM
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-IM 是一个基于 epoll + 多线程实现的聊天室(类似于 QQ)
+IM 是一个基于 epoll + 多线程实现的聊天室(类似于 QQ 聊天)
 
 ### 基本功能
 
@@ -27,8 +26,8 @@ IM 是一个基于 epoll + 多线程实现的聊天室(类似于 QQ)
 
 - version-0.0.1
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 2019.05.02：实现基于 poll 的聊天 C/S 端
+
 - version-0.0.2
 
 - version-0.0.3
