@@ -1,5 +1,3 @@
-// @Author Lin Ya
-// @Email xxbbb@vip.qq.com
 #include "AsyncLogging.h"
 #include "LogFile.h"
 #include <stdio.h>
@@ -9,7 +7,7 @@
 
 
 AsyncLogging::AsyncLogging(std::string logFileName_,int flushInterval)
-  : flushInterval_(flushInterval),
+    :flushInterval_(flushInterval),
     running_(false),
     basename_(logFileName_),
     thread_(std::bind(&AsyncLogging::threadFunc, this), "Logging"),
@@ -26,13 +24,11 @@ AsyncLogging::AsyncLogging(std::string logFileName_,int flushInterval)
     buffers_.reserve(16);
 }
 
-void AsyncLogging::append(const char* logline, int len)
-{
+void AsyncLogging::append(const char* logline, int len) {
     MutexLockGuard lock(mutex_);
     if (currentBuffer_->avail() > len)
         currentBuffer_->append(logline, len);
-    else
-    {
+    else {
         buffers_.push_back(currentBuffer_);
         currentBuffer_.reset();
         if (nextBuffer_)
@@ -44,8 +40,7 @@ void AsyncLogging::append(const char* logline, int len)
     }
 }
 
-void AsyncLogging::threadFunc()
-{
+void AsyncLogging::threadFunc() {
     assert(running_ == true);
     latch_.countDown();
     LogFile output(basename_);
@@ -55,16 +50,14 @@ void AsyncLogging::threadFunc()
     newBuffer2->bzero();
     BufferVector buffersToWrite;
     buffersToWrite.reserve(16);
-    while (running_)
-    {
+    while (running_) {
         assert(newBuffer1 && newBuffer1->length() == 0);
         assert(newBuffer2 && newBuffer2->length() == 0);
         assert(buffersToWrite.empty());
 
         {
             MutexLockGuard lock(mutex_);
-            if (buffers_.empty())  // unusual usage!
-            {
+            if (buffers_.empty()) {
                 cond_.waitForSeconds(flushInterval_);
             }
             buffers_.push_back(currentBuffer_);
@@ -72,16 +65,14 @@ void AsyncLogging::threadFunc()
 
             currentBuffer_ = std::move(newBuffer1);
             buffersToWrite.swap(buffers_);
-            if (!nextBuffer_)
-            {
+            if (!nextBuffer_) {
                 nextBuffer_ = std::move(newBuffer2);
             }
         }
 
         assert(!buffersToWrite.empty());
 
-        if (buffersToWrite.size() > 25)
-        {
+        if (buffersToWrite.size() > 25) {
             //char buf[256];
             // snprintf(buf, sizeof buf, "Dropped log messages at %s, %zd larger buffers\n",
             //          Timestamp::now().toFormattedString().c_str(),
@@ -91,28 +82,24 @@ void AsyncLogging::threadFunc()
             buffersToWrite.erase(buffersToWrite.begin()+2, buffersToWrite.end());
         }
 
-        for (size_t i = 0; i < buffersToWrite.size(); ++i)
-        {
+        for (size_t i = 0; i < buffersToWrite.size(); ++i) {
             // FIXME: use unbuffered stdio FILE ? or use ::writev ?
             output.append(buffersToWrite[i]->data(), buffersToWrite[i]->length());
         }
 
-        if (buffersToWrite.size() > 2)
-        {
+        if (buffersToWrite.size() > 2) {
             // drop non-bzero-ed buffers, avoid trashing
             buffersToWrite.resize(2);
         }
 
-        if (!newBuffer1)
-        {
+        if (!newBuffer1) {
             assert(!buffersToWrite.empty());
             newBuffer1 = buffersToWrite.back();
             buffersToWrite.pop_back();
             newBuffer1->reset();
         }
 
-        if (!newBuffer2)
-        {
+        if (!newBuffer2) {
             assert(!buffersToWrite.empty());
             newBuffer2 = buffersToWrite.back();
             buffersToWrite.pop_back();
