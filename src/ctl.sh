@@ -2,6 +2,7 @@
 
 SERVER_PATH=$(pwd)
 server=$SERVER_PATH/bin/server
+client=$SERVER_PATH/bin/client
 conf=$SERVER_PATH/conf/im.conf
 echo "`date +%Y-%m-%d,%H:%m:%s`:server.conf 载入成功 ···" >> $SERVER_PATH/bin/log/sys.log
 
@@ -17,9 +18,23 @@ function startServer() {
 	else
 		ip=$(awk -F: '/ip/{print $2}' $conf)
 		port=$(awk -F: '/port/{print $2}' $conf)
-		$server $ip $port &
+		$server $port &
         echo "`date +%Y-%m-%d,%H:%m:%s`:server start success ···"
         echo "`date +%Y-%m-%d,%H:%m:%s`:server start success ···" >> $SERVER_PATH/bin/log/sys.log
+	fi
+}
+
+function connect() {
+	pid=$(pidof $client)
+	if [ $? -eq 0 ];then
+        echo  "`date +%Y-%m-%d,%H:%m:%s`:client is already connect ···"
+        echo  "`date +%Y-%m-%d,%H:%m:%s`:client is already connect ···" >> $SERVER_PATH/bin/log/sys.log
+	else
+		ip=$(awk -F: '/ip/{print $2}' $conf)
+		port=$(awk -F: '/port/{print $2}' $conf)
+		$client $ip $port
+        echo "`date +%Y-%m-%d,%H:%m:%s`:client start success ···"
+        echo "`date +%Y-%m-%d,%H:%m:%s`:client start success ···" >> $SERVER_PATH/bin/log/sys.log
 	fi
 }
 
@@ -58,5 +73,8 @@ case $1 in
 	;;
 	-r | 'restart')
 	restartServer
+	;;
+	-c | 'connect')
+	connect
 	;;
 esac
